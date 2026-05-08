@@ -9,5 +9,5 @@ npx supabase@latest login
 Instalar pnpm install para modulos
 Instalar pnpm install @supabase/supabase-js
 
-Iniciar proyecto pnpm run dev
+Iniciar proyecto pnpm run dev 
 
