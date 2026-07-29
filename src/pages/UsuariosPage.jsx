@@ -7,14 +7,14 @@ import { IconPlus, IconSearch, IconEdit, IconTrash, IconX, IconEye, IconEyeOff }
 // ── Constantes ────────────────────────────────────────────────────────
 const ROLES = ['Administrador', 'Vendedor', 'Cajero', 'Supervisor']
 const ROL_STYLE = {
-  Administrador: 'text-indigo-300 bg-indigo-900/70',
+  Administrador: 'text-primary-300 bg-primary-900/70',
   Vendedor:      'text-emerald-300 bg-emerald-900/60',
   Cajero:        'text-sky-300 bg-sky-900/60',
   Supervisor:    'text-amber-300 bg-amber-900/60',
 }
 const ESTADO_STYLE = {
   Activo:   'text-emerald-400 bg-emerald-400/10',
-  Inactivo: 'text-slate-400 bg-slate-700/60',
+  Inactivo: 'text-slate-400 bg-primary-700/60',
 }
 const AVATAR_COLORS = ['#4f46e5','#7c3aed','#059669','#0284c7','#db2777','#d97706','#0d9488']
 const avatarColor = (n) => AVATAR_COLORS[n.charCodeAt(0) % AVATAR_COLORS.length]
@@ -24,7 +24,7 @@ const initials    = (n) => n.split(' ').map(w => w[0]).join('').slice(0, 2).toUp
 function AccesoRestringidoModal({ accion = 'realizar esta acción', onClose }) {
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
+      <div className="bg-primary-800 border border-primary-700 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
         <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center text-red-400 mx-auto mb-4">
           <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -33,10 +33,10 @@ function AccesoRestringidoModal({ accion = 'realizar esta acción', onClose }) {
         </div>
         <h3 className="font-bold text-white text-base mb-2">Acceso restringido</h3>
         <p className="text-slate-400 text-sm leading-relaxed mb-6">
-          Solo los <span className="text-indigo-400 font-semibold">Administradores</span> pueden {accion}. Contacta a tu administrador.
+          Solo los <span className="text-primary-400 font-semibold">Administradores</span> pueden {accion}. Contacta a tu administrador.
         </p>
         <button onClick={onClose}
-          className="w-full py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors">
+          className="w-full py-2.5 rounded-lg bg-primary-700 hover:bg-primary-600 text-slate-200 text-sm font-medium transition-colors">
           Entendido
         </button>
       </div>
@@ -99,19 +99,19 @@ function UserModal({ mode, user, onSave, onClose, existingEmails }) {
   }
 
   const inp = (k) =>
-    `w-full bg-slate-900 border rounded-xl px-3 py-2.5 text-sm text-slate-100 placeholder-slate-600 outline-none focus:ring-2 focus:ring-indigo-500 transition ${errors[k] ? 'border-red-500 focus:ring-red-500' : 'border-slate-700'}`
+    `w-full bg-primary-900 border rounded-xl px-3 py-2.5 text-sm text-slate-100 placeholder-slate-600 outline-none focus:ring-2 focus:ring-primary-500 transition ${errors[k] ? 'border-red-500 focus:ring-red-500' : 'border-primary-700'}`
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md mx-4 flex flex-col max-h-[90vh]">
+      <div className="bg-primary-800 border border-primary-700 rounded-2xl shadow-2xl w-full max-w-md mx-4 flex flex-col max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-700 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-primary-700 flex-shrink-0">
           <div>
             <h2 className="font-semibold text-white text-base">
               {mode === 'add' ? 'Crear nuevo usuario' : 'Editar usuario'}
             </h2>
-            <p className="text-xs text-indigo-400 mt-0.5 flex items-center gap-1">
+            <p className="text-xs text-primary-400 mt-0.5 flex items-center gap-1">
               <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
@@ -164,7 +164,7 @@ function UserModal({ mode, user, onSave, onClose, existingEmails }) {
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1.5">Estado</label>
               <select value={form.estado} onChange={e => set('estado', e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                className="w-full bg-primary-900 border border-primary-700 rounded-xl px-3 py-2.5 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-primary-500 transition">
                 <option value="Activo">Activo</option>
                 <option value="Inactivo">Inactivo</option>
               </select>
@@ -205,11 +205,11 @@ function UserModal({ mode, user, onSave, onClose, existingEmails }) {
         {/* Footer */}
         <div className="px-6 pb-5 pt-2 flex gap-3 flex-shrink-0">
           <button onClick={onClose}
-            className="flex-1 py-2.5 rounded-lg border border-slate-600 text-slate-300 text-sm font-medium hover:bg-slate-700 transition-colors">
+            className="flex-1 py-2.5 rounded-lg border border-primary-600 text-slate-300 text-sm font-medium hover:bg-primary-700 transition-colors">
             Cancelar
           </button>
           <button onClick={handleSave} disabled={saving}
-            className="flex-1 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2">
+            className="flex-1 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2">
             {saving
               ? <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/>
@@ -295,7 +295,7 @@ export default function UsuariosPage() {
     <AppLayout>
       <div className="flex-1 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <svg className="animate-spin w-8 h-8 text-indigo-400" viewBox="0 0 24 24" fill="none">
+          <svg className="animate-spin w-8 h-8 text-primary-400" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/>
             <path fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z" opacity=".75"/>
           </svg>
@@ -308,7 +308,7 @@ export default function UsuariosPage() {
   return (
     <AppLayout>
       {/* Header */}
-      <header className="border-b border-slate-800 px-6 py-4 flex items-center justify-between flex-shrink-0">
+      <header className="border-b border-primary-800 px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div>
           <h1 className="text-lg font-bold text-white">Usuarios</h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -319,8 +319,8 @@ export default function UsuariosPage() {
           {/* Badge rol */}
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
             isAdmin
-              ? 'text-indigo-300 bg-indigo-900/50 border-indigo-700/50'
-              : 'text-slate-400 bg-slate-800 border-slate-700'
+              ? 'text-primary-300 bg-primary-900/50 border-primary-700/50'
+              : 'text-slate-400 bg-primary-800 border-primary-700'
           }`}>
             <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -331,12 +331,12 @@ export default function UsuariosPage() {
           {/* Botón nuevo usuario — solo visible para admins */}
           {isAdmin ? (
             <button onClick={() => setUserModal({ mode: 'add', user: null })}
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors shadow-lg shadow-indigo-500/20">
+              className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors shadow-lg shadow-primary-500/20">
               <IconPlus /> Nuevo usuario
             </button>
           ) : (
             <button onClick={() => setBloqueado({ accion: 'crear usuarios' })}
-              className="flex items-center gap-2 bg-slate-700 text-slate-500 text-sm font-medium px-4 py-2.5 rounded-lg cursor-not-allowed">
+              className="flex items-center gap-2 bg-primary-700 text-slate-500 text-sm font-medium px-4 py-2.5 rounded-lg cursor-not-allowed">
               <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -363,12 +363,12 @@ export default function UsuariosPage() {
       {/* Stats */}
       <div className={`px-6 grid grid-cols-4 gap-3 flex-shrink-0 ${isAdmin ? 'pt-4 pb-2' : 'pt-3 pb-2'}`}>
         {[
-          { val: usuarios.length,                                       label: 'Total',     color: 'text-indigo-400'  },
+          { val: usuarios.length,                                       label: 'Total',     color: 'text-primary-400'  },
           { val: usuarios.filter(u => u.estado === 'Activo').length,   label: 'Activos',   color: 'text-emerald-400' },
           { val: usuarios.filter(u => u.estado === 'Inactivo').length, label: 'Inactivos', color: 'text-slate-400'   },
           { val: [...new Set(usuarios.map(u => u.rol))].length,        label: 'Roles',     color: 'text-purple-400'  },
         ].map((s, i) => (
-          <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
+          <div key={i} className="bg-primary-900 border border-primary-800 rounded-xl px-4 py-3">
             <p className={`text-xl font-bold ${s.color}`}>{s.val}</p>
             <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
           </div>
@@ -376,18 +376,18 @@ export default function UsuariosPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="px-6 py-3 flex items-center gap-3 border-b border-slate-800 flex-shrink-0 flex-wrap">
+      <div className="px-6 py-3 flex items-center gap-3 border-b border-primary-800 flex-shrink-0 flex-wrap">
         <div className="relative flex-1 max-w-xs">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"><IconSearch /></div>
           <input value={search} onChange={e => { setSearch(e.target.value); setSelected([]) }}
             placeholder="Buscar nombre o correo..."
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-100 placeholder-slate-600 outline-none focus:ring-2 focus:ring-indigo-500 transition" />
+            className="w-full bg-primary-900 border border-primary-700 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-100 placeholder-slate-600 outline-none focus:ring-2 focus:ring-primary-500 transition" />
         </div>
 
-        <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1">
+        <div className="flex gap-1 bg-primary-900 border border-primary-800 rounded-lg p-1">
           {['Todos', ...ROLES].map(r => (
             <button key={r} onClick={() => setFiltroRol(r)}
-              className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${filtroRol === r ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}>
+              className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${filtroRol === r ? 'bg-primary-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}>
               {r}
             </button>
           ))}
@@ -403,16 +403,16 @@ export default function UsuariosPage() {
 
       {/* Tabla */}
       <div className="flex-1 overflow-auto px-6 py-4">
-        <div className="rounded-2xl border border-slate-800 overflow-hidden">
+        <div className="rounded-2xl border border-primary-800 overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="bg-slate-900 border-b border-slate-800">
+              <tr className="bg-primary-900 border-b border-primary-800">
                 {isAdmin && (
                   <th className="px-4 py-3 w-10">
                     <input type="checkbox"
                       checked={filtered.length > 0 && selected.length === filtered.length}
                       onChange={toggleAll}
-                      className="accent-indigo-500 w-4 h-4 cursor-pointer" />
+                      className="accent-primary-500 w-4 h-4 cursor-pointer" />
                   </th>
                 )}
                 {['Usuario', 'Correo', 'Rol', 'Estado', 'Creado', 'Acciones'].map(h => (
@@ -424,11 +424,11 @@ export default function UsuariosPage() {
               {filtered.length === 0
                 ? <tr><td colSpan={isAdmin ? 7 : 6} className="text-center py-16 text-slate-600 text-sm">No se encontraron usuarios</td></tr>
                 : filtered.map(u => (
-                  <tr key={u.id} className={`transition-colors ${selected.includes(u.id) ? 'bg-indigo-950/30' : 'hover:bg-slate-900/60'}`}>
+                  <tr key={u.id} className={`transition-colors ${selected.includes(u.id) ? 'bg-primary-950/30' : 'hover:bg-primary-900/60'}`}>
                     {isAdmin && (
                       <td className="px-4 py-3">
                         <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggleSel(u.id)}
-                          className="accent-indigo-500 w-4 h-4 cursor-pointer" />
+                          className="accent-primary-500 w-4 h-4 cursor-pointer" />
                       </td>
                     )}
                     {/* Avatar + nombre */}
@@ -457,7 +457,7 @@ export default function UsuariosPage() {
                             <button
                               onClick={() => setUserModal({ mode: 'edit', user: u })}
                               title="Editar usuario"
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-400 hover:bg-indigo-400/10 transition-colors">
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-primary-400 hover:bg-primary-400/10 transition-colors">
                               <IconEdit />
                             </button>
                             {/* Eliminar — solo admin */}

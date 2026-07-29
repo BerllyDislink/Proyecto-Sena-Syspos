@@ -37,7 +37,7 @@ function BarChart({ data }) {
           <div key={i} className="flex flex-col items-center flex-1 gap-1 group relative">
             {/* Tooltip */}
             {d.value > 0 && (
-              <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-primary-700 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                 ${d.value.toLocaleString('es-CO')}
               </div>
             )}
@@ -46,12 +46,12 @@ function BarChart({ data }) {
               style={{
                 height: pct > 0 ? `${Math.max(pct, 4)}%` : '4%',
                 background: isToday
-                  ? 'linear-gradient(180deg,#6366f1,#818cf8)'
-                  : d.value > 0 ? '#334155' : '#1e293b',
+                  ? 'linear-gradient(180deg,#16734D,#1e9a62)'
+                  : d.value > 0 ? '#0d452f' : '#082e1f',
                 opacity: d.value === 0 ? 0.3 : 1,
               }}
             />
-            <span className={`text-xs ${isToday ? 'text-indigo-400 font-semibold' : 'text-slate-500'}`}>
+            <span className={`text-xs ${isToday ? 'text-primary-400 font-semibold' : 'text-slate-500'}`}>
               {d.label}
             </span>
           </div>
@@ -87,8 +87,8 @@ export default function DashboardPage() {
     {
       label:     'Ingresos totales',
       value:     `$${totalIngresos.toLocaleString('es-CO')}`,
-      color:     '#6366f1',
-      bg:        '#1e1b4b',
+      color:     '#16734D',
+      bg:        '#082e1f',
       sparkData: sparkIngresos,
       icon: 'M1 4h22c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H1c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM1 10h22',
       change: totalVentas > 0 ? `${totalVentas} ventas` : 'Sin ventas aún',
@@ -129,12 +129,12 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-slate-950/80 backdrop-blur border-b border-slate-800 px-8 py-4 flex items-center justify-between flex-shrink-0">
+      <header className="sticky top-0 z-10 bg-secondary-950/80 backdrop-blur border-b border-primary-800 px-8 py-4 flex items-center justify-between flex-shrink-0">
         <div>
           <h1 className="text-xl font-bold text-white">Dashboard</h1>
           <p className="text-xs text-slate-500">Resumen en tiempo real del sistema</p>
         </div>
-        <span className="text-xs text-slate-500 bg-slate-800 px-3 py-1.5 rounded-full">
+        <span className="text-xs text-slate-500 bg-primary-800 px-3 py-1.5 rounded-full">
           {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </span>
       </header>
@@ -144,7 +144,7 @@ export default function DashboardPage() {
         {/* ── Stat cards ── */}
         <div className="grid grid-cols-4 gap-4">
           {statsCards.map((s, i) => (
-            <div key={i} className="rounded-2xl border border-slate-800 bg-slate-900 p-5 flex flex-col gap-3 hover:border-slate-700 transition-colors">
+            <div key={i} className="rounded-2xl border border-primary-800 bg-primary-900 p-5 flex flex-col gap-3 hover:border-primary-700 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: s.bg, color: s.color }}>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-3 gap-4">
 
           {/* Barras: ventas últimos 7 días */}
-          <div className="col-span-2 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <div className="col-span-2 rounded-2xl border border-primary-800 bg-primary-900 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="font-semibold text-white">Ventas esta semana</h2>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-indigo-400 bg-indigo-400/10 px-3 py-1 rounded-full font-medium">
+                <span className="text-xs text-primary-400 bg-primary-400/10 px-3 py-1 rounded-full font-medium">
                   Hoy: ${(ventasPorDia[ventasPorDia.length - 1]?.value || 0).toLocaleString('es-CO')}
                 </span>
               </div>
@@ -190,22 +190,22 @@ export default function DashboardPage() {
             {/* Leyenda */}
             <div className="flex items-center gap-4 mt-3">
               <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(180deg,#6366f1,#818cf8)' }} />
+                <div className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(180deg,#16734D,#1e9a62)' }} />
                 <span className="text-[10px] text-slate-500">Hoy</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-slate-600" />
+                <div className="w-3 h-3 rounded-sm bg-primary-600" />
                 <span className="text-[10px] text-slate-500">Días anteriores</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-slate-800 opacity-30" />
+                <div className="w-3 h-3 rounded-sm bg-primary-800 opacity-30" />
                 <span className="text-[10px] text-slate-500">Sin ventas</span>
               </div>
             </div>
           </div>
 
           {/* Top productos */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <div className="rounded-2xl border border-primary-800 bg-primary-900 p-6">
             <h2 className="font-semibold text-white mb-1">Top productos</h2>
             <p className="text-xs text-slate-500 mb-5">Más vendidos (ventas completadas)</p>
             {topProductos.length === 0
@@ -219,8 +219,8 @@ export default function DashboardPage() {
                           <span className="text-sm text-slate-300 truncate">{p.nombre}</span>
                           <span className="text-xs text-slate-500 ml-2 flex-shrink-0">{p.vendidos} uds</span>
                         </div>
-                        <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-indigo-500 transition-all duration-700"
+                        <div className="h-1.5 bg-primary-800 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full bg-primary-500 transition-all duration-700"
                             style={{ width: `${pct}%` }} />
                         </div>
                       </div>
@@ -231,8 +231,8 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Ventas recientes ── */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="rounded-2xl border border-primary-800 bg-primary-900 overflow-hidden">
+          <div className="px-6 py-4 border-b border-primary-800 flex items-center justify-between">
             <div>
               <h2 className="font-semibold text-white">Ventas recientes</h2>
               <p className="text-xs text-slate-500 mt-0.5">Últimas 5 transacciones del sistema</p>
@@ -244,7 +244,7 @@ export default function DashboardPage() {
             ? <div className="text-center py-12 text-slate-600 text-sm">No hay ventas registradas aún</div>
             : <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-800/50">
+                  <tr className="border-b border-primary-800 bg-primary-800/50">
                     {['# Venta', 'Cliente', 'Fecha', 'Productos', 'Total', 'Estado'].map(h => (
                       <th key={h} className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">{h}</th>
                     ))}
@@ -252,8 +252,8 @@ export default function DashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-800">
                   {ventasRecientes.map((v, i) => (
-                    <tr key={i} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="px-6 py-4 text-sm font-mono text-indigo-400">#{v.id}</td>
+                    <tr key={i} className="hover:bg-primary-800/40 transition-colors">
+                      <td className="px-6 py-4 text-sm font-mono text-primary-400">#{v.id}</td>
                       <td className="px-6 py-4 text-sm text-slate-200 font-medium">{v.cliente}</td>
                       <td className="px-6 py-4 text-xs text-slate-500">{v.fecha} {v.hora}</td>
                       <td className="px-6 py-4 text-xs text-slate-400">{v.items.length} ítem{v.items.length > 1 ? 's' : ''}</td>

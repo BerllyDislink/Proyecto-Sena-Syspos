@@ -12,12 +12,12 @@ const UsuariosPage   = lazy(() => import('./pages/UsuariosPage'))
 // ── Spinner de carga ──────────────────────────────────────────────────
 function PageLoader() {
   return (
-    <div className="flex h-screen items-center justify-center bg-slate-950">
+    <div className="flex h-screen items-center justify-center bg-gradient-to-br from-secondary-950 via-secondary-900 to-primary-900">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center font-bold text-white text-xl animate-pulse">S</div>
+        <div className="w-12 h-12 rounded-2xl bg-primary-600 flex items-center justify-center font-bold text-white text-xl animate-pulse">S</div>
         <div className="flex gap-1.5">
           {[0, 1, 2].map(i => (
-            <div key={i} className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
+            <div key={i} className="w-2 h-2 rounded-full bg-primary-500 animate-bounce"
               style={{ animationDelay: `${i * 0.15}s` }} />
           ))}
         </div>
