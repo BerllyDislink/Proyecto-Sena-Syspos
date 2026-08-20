@@ -1,0 +1,1155 @@
+{
+  "info": {
+    "name": "SysPOS — API Supabase",
+    "description": "Colección completa para probar los endpoints REST de Supabase del sistema SysPOS.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://TU_PROYECTO_ID.supabase.co",
+      "description": "URL de tu proyecto Supabase — Settings → API → Project URL"
+    },
+    {
+      "key": "anon_key",
+      "value": "TU_ANON_KEY",
+      "description": "Clave pública anon — Settings → API → anon public"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "description": "Se rellena automáticamente al ejecutar el request de Login"
+    },
+    {
+      "key": "user_uuid",
+      "value": "",
+      "description": "Se rellena automáticamente al ejecutar el request de Login"
+    },
+    {
+      "key": "venta_uuid",
+      "value": "",
+      "description": "Se rellena automáticamente al crear una venta"
+    },
+    {
+      "key": "producto_uuid",
+      "value": "",
+      "description": "Se rellena automáticamente al crear un producto"
+    },
+    {
+      "key": "usuario_uuid",
+      "value": "",
+      "description": "Se rellena automáticamente al crear un usuario"
+    },
+    {
+      "key": "venta_numero",
+      "value": "99001",
+      "description": "Número de venta usado en las pruebas. Cambia si ya existe."
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Autenticación",
+      "description": "Endpoints de Supabase Auth. Ejecuta Login primero — guarda el JWT token automáticamente.",
+      "item": [
+        {
+          "name": "Login — obtener JWT token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tiene access_token', () => pm.expect(res.access_token).to.be.a('string').and.not.empty);",
+                  "pm.test('Tipo bearer', () => pm.expect(res.token_type).to.eql('bearer'));",
+                  "pm.test('Usuario presente', () => pm.expect(res.user.email).to.eql('admin@syspos.com'));",
+                  "",
+                  "// Guardar token y UUID para el resto de requests",
+                  "if (res.access_token) {",
+                  "  pm.collectionVariables.set('jwt_token', res.access_token);",
+                  "  pm.collectionVariables.set('user_uuid', res.user.id);",
+                  "  console.log('✓ JWT token guardado');",
+                  "  console.log('✓ User UUID:', res.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@syspos.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "v1", "token"],
+              "query": [{ "key": "grant_type", "value": "password" }]
+            },
+            "description": "Inicia sesión con el usuario administrador. Guarda automáticamente el jwt_token y user_uuid como variables de colección."
+          }
+        },
+        {
+          "name": "Login — credenciales incorrectas (debe fallar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 o 422 con credenciales incorrectas', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 401, 422]);",
+                  "});",
+                  "pm.test('No contiene access_token', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.access_token).to.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@syspos.com\",\n  \"password\": \"clave_incorrecta\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "v1", "token"],
+              "query": [{ "key": "grant_type", "value": "password" }]
+            },
+            "description": "Prueba negativa: verifica que una contraseña incorrecta no devuelve token."
+          }
+        },
+        {
+          "name": "Obtener sesión actual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Usuario autenticado presente', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.user).to.be.an('object');",
+                  "  pm.expect(res.user.email).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/v1/user",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "v1", "user"]
+            },
+            "description": "Verifica que el token actual es válido y retorna los datos del usuario autenticado."
+          }
+        },
+        {
+          "name": "RLS — acceso sin token (debe devolver vacío)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 pero sin datos (RLS activo)', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res).to.be.an('array').and.have.lengthOf(0);",
+                  "  console.log('✓ RLS funcionando: 0 filas sin autenticación');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/ventas?select=*&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "ventas"],
+              "query": [
+                { "key": "select", "value": "*" },
+                { "key": "limit", "value": "5" }
+              ]
+            },
+            "description": "Prueba de seguridad: sin Authorization header, RLS debe devolver 0 filas. Si devuelve datos, hay un problema en las políticas."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Ventas",
+      "description": "CRUD completo de la tabla ventas con join a venta_items y usuarios.",
+      "item": [
+        {
+          "name": "GET — listar ventas con vendedor e ítems",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "pm.test('Ventas tienen venta_items', () => {",
+                  "  const res = pm.response.json();",
+                  "  if (res.length > 0) {",
+                  "    pm.expect(res[0]).to.have.property('venta_items');",
+                  "    pm.expect(res[0]).to.have.property('usuarios');",
+                  "    console.log(`✓ ${res.length} ventas encontradas`);",
+                  "    console.log('✓ Primer vendedor:', res[0].usuarios?.nombre ?? 'Sin asignar');",
+                  "  }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/ventas?select=*,venta_items(*),usuarios(nombre,rol)&order=created_at.desc&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "ventas"],
+              "query": [
+                { "key": "select", "value": "*,venta_items(*),usuarios(nombre,rol)" },
+                { "key": "order", "value": "created_at.desc" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Lista las últimas 20 ventas con sus ítems y el nombre del vendedor. Verifica la relación FK ventas → usuarios."
+          }
+        },
+        {
+          "name": "GET — filtrar ventas por estado Completada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Todas las ventas son Completada', () => {",
+                  "  const res = pm.response.json();",
+                  "  res.forEach(v => pm.expect(v.estado).to.eql('Completada'));",
+                  "  console.log(`✓ ${res.length} ventas completadas`);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/ventas?select=*&estado=eq.Completada&order=created_at.desc",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "ventas"],
+              "query": [
+                { "key": "select", "value": "*" },
+                { "key": "estado", "value": "eq.Completada" },
+                { "key": "order", "value": "created_at.desc" }
+              ]
+            },
+            "description": "Filtra ventas por estado. Cambia eq.Completada por eq.Anulada o eq.Reembolso para otros estados."
+          }
+        },
+        {
+          "name": "GET — buscar venta por número",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Número de venta coincide', () => {",
+                  "  const res = pm.response.json();",
+                  "  if (res.length > 0) {",
+                  "    pm.expect(res[0].numero).to.eql('{{venta_numero}}');",
+                  "  }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/ventas?select=*,venta_items(*)&numero=eq.{{venta_numero}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "ventas"],
+              "query": [
+                { "key": "select", "value": "*,venta_items(*)" },
+                { "key": "numero", "value": "eq.{{venta_numero}}" }
+              ]
+            },
+            "description": "Busca una venta por su número. Usa la variable {{venta_numero}} definida en la colección."
+          }
+        },
+        {
+          "name": "POST — crear nueva venta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Venta creada con UUID', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res).to.be.an('array').and.have.lengthOf(1);",
+                  "  pm.expect(res[0].id).to.be.a('string');",
+                  "  pm.expect(res[0].numero).to.eql(pm.collectionVariables.get('venta_numero'));",
+                  "  pm.collectionVariables.set('venta_uuid', res[0].id);",
+                  "  console.log('✓ Venta creada UUID:', res[0].id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Prefer", "value": "return=representation" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"{{venta_numero}}\",\n  \"cliente\": \"Cliente Test Postman\",\n  \"tel\": \"300 123 4567\",\n  \"email\": \"test@postman.com\",\n  \"estado\": \"Completada\",\n  \"total\": 850.00,\n  \"vendedor_id\": \"{{user_uuid}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/ventas",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "ventas"]
+            },
+            "description": "Crea una nueva venta. El header 'Prefer: return=representation' hace que Supabase devuelva el registro insertado. Guarda el UUID en {{venta_uuid}}."
+          }
+        },
+        {
+          "name": "POST — insertar ítems de la venta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Ítems insertados', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res).to.be.an('array').and.have.length.greaterThan(0);",
+                  "  console.log(`✓ ${res.length} ítems insertados`);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Prefer", "value": "return=representation" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"venta_id\": \"{{venta_uuid}}\",\n    \"producto\": \"Laptop HP 14\",\n    \"qty\": 1,\n    \"precio\": 850.00\n  }\n]"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/venta_items",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "venta_items"]
+            },
+            "description": "Inserta los ítems de la venta creada anteriormente. Usa {{venta_uuid}} del paso anterior. Envía un array para insertar múltiples ítems en una sola llamada."
+          }
+        },
+        {
+          "name": "PATCH — anular venta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+                  "console.log('✓ Venta', pm.collectionVariables.get('venta_numero'), 'anulada');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"Anulada\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/ventas?numero=eq.{{venta_numero}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "ventas"],
+              "query": [{ "key": "numero", "value": "eq.{{venta_numero}}" }]
+            },
+            "description": "Cambia el estado de la venta a Anulada. Nota: la devolución del stock la maneja el frontend — aquí solo se actualiza el estado en BD."
+          }
+        },
+        {
+          "name": "PATCH — procesar reembolso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+                  "console.log('✓ Reembolso procesado para venta', pm.collectionVariables.get('venta_numero'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"Reembolso\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/ventas?numero=eq.{{venta_numero}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "ventas"],
+              "query": [{ "key": "numero", "value": "eq.{{venta_numero}}" }]
+            },
+            "description": "Cambia el estado a Reembolso. Ajusta el número de venta según la que quieras reembolsar."
+          }
+        },
+        {
+          "name": "DELETE — eliminar venta de prueba",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+                  "console.log('✓ Venta de prueba eliminada');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/ventas?numero=eq.{{venta_numero}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "ventas"],
+              "query": [{ "key": "numero", "value": "eq.{{venta_numero}}" }]
+            },
+            "description": "Limpieza: elimina la venta de prueba creada en este ciclo. Los venta_items se eliminan en cascada automáticamente."
+          }
+        },
+        {
+          "name": "GET — métricas ventas últimos 7 días",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Datos de ventas de los últimos 7 días', () => {",
+                  "  const res = pm.response.json();",
+                  "  const totalIngresos = res.reduce((s, v) => s + parseFloat(v.total), 0);",
+                  "  console.log(`✓ ${res.length} ventas en los últimos 7 días`);",
+                  "  console.log(`✓ Total ingresos: $${totalIngresos.toFixed(2)}`);",
+                  "  pm.expect(res).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/ventas?select=numero,total,estado,created_at&estado=eq.Completada&created_at=gte.{{$isoTimestamp}}&order=created_at.desc",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "ventas"],
+              "query": [
+                { "key": "select", "value": "numero,total,estado,created_at" },
+                { "key": "estado", "value": "eq.Completada" },
+                { "key": "created_at", "value": "gte.{{$isoTimestamp}}" },
+                { "key": "order", "value": "created_at.desc" }
+              ]
+            },
+            "description": "Obtiene ventas completadas para calcular métricas del dashboard. Ajusta la fecha en el filtro created_at según el período que necesites."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Productos",
+      "description": "CRUD de la tabla productos. Verifica stock, categorías y la relación con venta_items.",
+      "item": [
+        {
+          "name": "GET — listar todos los productos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Productos con campos correctos', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res).to.be.an('array');",
+                  "  if (res.length > 0) {",
+                  "    pm.expect(res[0]).to.have.all.keys('id','nombre','categoria','precio','stock','descripcion','created_at');",
+                  "    console.log(`✓ ${res.length} productos en inventario`);",
+                  "    const sinStock = res.filter(p => p.stock === 0);",
+                  "    console.log(`⚠ ${sinStock.length} productos sin stock`);",
+                  "  }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/productos?select=*&order=nombre",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "productos"],
+              "query": [
+                { "key": "select", "value": "*" },
+                { "key": "order", "value": "nombre" }
+              ]
+            },
+            "description": "Lista todos los productos ordenados por nombre. El script de test muestra cuántos tienen stock 0."
+          }
+        },
+        {
+          "name": "GET — productos con stock bajo (menos de 5)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.test('Todos tienen stock menor a 5', () => {",
+                  "  res.forEach(p => pm.expect(p.stock).to.be.lessThan(5));",
+                  "});",
+                  "if (res.length > 0) {",
+                  "  console.log('⚠ Productos con stock bajo:');",
+                  "  res.forEach(p => console.log(` - ${p.nombre}: ${p.stock} uds`));",
+                  "} else {",
+                  "  console.log('✓ Todos los productos tienen stock suficiente');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/productos?select=nombre,stock,categoria&stock=lt.5&order=stock",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "productos"],
+              "query": [
+                { "key": "select", "value": "nombre,stock,categoria" },
+                { "key": "stock", "value": "lt.5" },
+                { "key": "order", "value": "stock" }
+              ]
+            },
+            "description": "Alerta de stock bajo: devuelve productos con menos de 5 unidades. Útil para pruebas de integridad del inventario."
+          }
+        },
+        {
+          "name": "POST — crear producto de prueba",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Producto creado con UUID', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res[0].id).to.be.a('string');",
+                  "  pm.expect(res[0].nombre).to.eql('Producto Test Postman');",
+                  "  pm.collectionVariables.set('producto_uuid', res[0].id);",
+                  "  console.log('✓ Producto creado UUID:', res[0].id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Prefer", "value": "return=representation" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Producto Test Postman\",\n  \"categoria\": \"Pruebas\",\n  \"precio\": 99.99,\n  \"stock\": 50,\n  \"descripcion\": \"Producto creado desde Postman para pruebas\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/productos",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "productos"]
+            },
+            "description": "Crea un producto de prueba. Guarda el UUID en {{producto_uuid}} para los siguientes requests."
+          }
+        },
+        {
+          "name": "PATCH — actualizar stock del producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+                  "console.log('✓ Stock actualizado a 35 unidades');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stock\": 35,\n  \"precio\": 109.99\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/productos?id=eq.{{producto_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "productos"],
+              "query": [{ "key": "id", "value": "eq.{{producto_uuid}}" }]
+            },
+            "description": "Actualiza el stock y precio del producto de prueba. Verifica en GET que los cambios se reflejan."
+          }
+        },
+        {
+          "name": "GET — verificar producto actualizado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Stock y precio actualizados', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res).to.have.lengthOf(1);",
+                  "  pm.expect(res[0].stock).to.eql(35);",
+                  "  pm.expect(parseFloat(res[0].precio)).to.eql(109.99);",
+                  "  console.log('✓ Stock:', res[0].stock, '| Precio:', res[0].precio);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/productos?select=*&id=eq.{{producto_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "productos"],
+              "query": [
+                { "key": "select", "value": "*" },
+                { "key": "id", "value": "eq.{{producto_uuid}}" }
+              ]
+            },
+            "description": "Verifica que el PATCH anterior actualizó correctamente el stock y precio."
+          }
+        },
+        {
+          "name": "DELETE — eliminar producto de prueba",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+                  "console.log('✓ Producto de prueba eliminado');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/productos?id=eq.{{producto_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "productos"],
+              "query": [{ "key": "id", "value": "eq.{{producto_uuid}}" }]
+            },
+            "description": "Limpieza: elimina el producto creado en esta sesión de pruebas."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Usuarios",
+      "description": "CRUD de la tabla usuarios. La creación de cuentas con acceso al sistema se hace vía Auth — aquí se prueban los datos de perfil.",
+      "item": [
+        {
+          "name": "GET — listar todos los usuarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Usuarios con campos correctos', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res).to.be.an('array');",
+                  "  if (res.length > 0) {",
+                  "    pm.expect(res[0]).to.include.keys('id','nombre','email','rol','estado');",
+                  "    const admins = res.filter(u => u.rol === 'Administrador');",
+                  "    const activos = res.filter(u => u.estado === 'Activo');",
+                  "    console.log(`✓ ${res.length} usuarios totales`);",
+                  "    console.log(`✓ ${admins.length} administradores`);",
+                  "    console.log(`✓ ${activos.length} activos`);",
+                  "  }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/usuarios?select=*&order=nombre",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "usuarios"],
+              "query": [
+                { "key": "select", "value": "*" },
+                { "key": "order", "value": "nombre" }
+              ]
+            },
+            "description": "Lista todos los usuarios. El test muestra un resumen por rol y estado."
+          }
+        },
+        {
+          "name": "GET — filtrar por rol Administrador",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Todos son Administrador', () => {",
+                  "  const res = pm.response.json();",
+                  "  res.forEach(u => pm.expect(u.rol).to.eql('Administrador'));",
+                  "  console.log(`✓ ${res.length} administradores encontrados`);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/usuarios?select=nombre,email,rol,estado&rol=eq.Administrador",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "usuarios"],
+              "query": [
+                { "key": "select", "value": "nombre,email,rol,estado" },
+                { "key": "rol", "value": "eq.Administrador" }
+              ]
+            },
+            "description": "Filtra usuarios por rol. Cambia eq.Administrador por eq.Vendedor, eq.Cajero o eq.Supervisor."
+          }
+        },
+        {
+          "name": "GET — verificar vinculación Auth ↔ tabla usuarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Admin vinculado correctamente', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res).to.have.lengthOf(1);",
+                  "  pm.expect(res[0].id).to.eql(pm.collectionVariables.get('user_uuid'));",
+                  "  pm.expect(res[0].rol).to.eql('Administrador');",
+                  "  console.log('✓ UUID coincide con Auth:', res[0].id);",
+                  "  console.log('✓ Rol:', res[0].rol);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/usuarios?select=*&id=eq.{{user_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "usuarios"],
+              "query": [
+                { "key": "select", "value": "*" },
+                { "key": "id", "value": "eq.{{user_uuid}}" }
+              ]
+            },
+            "description": "Verifica que el UUID del usuario logueado ({{user_uuid}}) existe en la tabla usuarios con el rol correcto. Este es el test clave para la vinculación Auth ↔ tabla."
+          }
+        },
+        {
+          "name": "POST — insertar perfil de usuario (solo tabla)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Usuario creado en tabla', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res[0].email).to.eql('test.postman@syspos.com');",
+                  "  pm.collectionVariables.set('usuario_uuid', res[0].id);",
+                  "  console.log('✓ Perfil creado UUID:', res[0].id);",
+                  "  console.log('⚠ NOTA: este usuario no puede iniciar sesión hasta que se cree en Auth');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Prefer", "value": "return=representation" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario Test Postman\",\n  \"email\": \"test.postman@syspos.com\",\n  \"rol\": \"Vendedor\",\n  \"estado\": \"Activo\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/usuarios",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "usuarios"]
+            },
+            "description": "Inserta solo el perfil en la tabla usuarios. Para que pueda iniciar sesión, debe crearse también en Supabase Auth (el frontend lo hace con signUp). Este request prueba solo la capa de BD."
+          }
+        },
+        {
+          "name": "PATCH — cambiar rol de usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+                  "console.log('✓ Rol actualizado a Supervisor');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rol\": \"Supervisor\",\n  \"estado\": \"Activo\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/usuarios?id=eq.{{usuario_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "usuarios"],
+              "query": [{ "key": "id", "value": "eq.{{usuario_uuid}}" }]
+            },
+            "description": "Cambia el rol del usuario de prueba. Los roles válidos son: Administrador, Vendedor, Cajero, Supervisor."
+          }
+        },
+        {
+          "name": "DELETE — eliminar usuario de prueba",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+                  "console.log('✓ Usuario de prueba eliminado de la tabla');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/usuarios?id=eq.{{usuario_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "usuarios"],
+              "query": [{ "key": "id", "value": "eq.{{usuario_uuid}}" }]
+            },
+            "description": "Limpieza: elimina el perfil de prueba de la tabla usuarios."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. RPCs — Funciones del servidor",
+      "description": "Prueba las funciones PostgreSQL con SECURITY DEFINER: registrar_usuario, eliminar_usuario y actualizar_password_usuario.",
+      "item": [
+        {
+          "name": "RPC — registrar_usuario (solo admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Usuario registrado correctamente', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.success).to.be.true;",
+                  "  pm.expect(res.email).to.eql('nuevo.rpc@syspos.com');",
+                  "  console.log('✓ Usuario RPC creado ID:', res.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_email\": \"nuevo.rpc@syspos.com\",\n  \"p_password\": \"clave123\",\n  \"p_nombre\": \"Usuario RPC Test\",\n  \"p_rol\": \"Cajero\",\n  \"p_estado\": \"Activo\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/rpc/registrar_usuario",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "rpc", "registrar_usuario"]
+            },
+            "description": "Llama la función RPC que crea un usuario en auth.users + tabla usuarios. Solo funciona si el token pertenece a un Administrador."
+          }
+        },
+        {
+          "name": "RPC — registrar_usuario sin ser admin (debe fallar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 o 403 — no admin rechazado', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 403, 422]);",
+                  "  console.log('✓ RLS/RPC bloqueó correctamente el acceso');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer TOKEN_DE_USUARIO_NO_ADMIN" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_email\": \"intento.no.admin@syspos.com\",\n  \"p_password\": \"clave123\",\n  \"p_nombre\": \"Intento No Admin\",\n  \"p_rol\": \"Vendedor\",\n  \"p_estado\": \"Activo\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/rpc/registrar_usuario",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "rpc", "registrar_usuario"]
+            },
+            "description": "Prueba de seguridad: reemplaza el token por uno de un usuario no-admin. La función debe rechazar la operación con error de privilegios."
+          }
+        },
+        {
+          "name": "RPC — actualizar_password_usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Contraseña actualizada', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.success).to.be.true;",
+                  "  console.log('✓ Contraseña actualizada correctamente');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_user_id\": \"{{usuario_uuid}}\",\n  \"p_password\": \"nueva_clave_456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/rpc/actualizar_password_usuario",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "rpc", "actualizar_password_usuario"]
+            },
+            "description": "Cambia la contraseña de un usuario vía RPC. Solo funciona si el token es de un Administrador."
+          }
+        },
+        {
+          "name": "RPC — eliminar_usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Usuario eliminado', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.success).to.be.true;",
+                  "  console.log('✓ Usuario eliminado de Auth y tabla usuarios');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{anon_key}}" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_user_id\": \"{{usuario_uuid}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/rpc/eliminar_usuario",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "rpc", "eliminar_usuario"]
+            },
+            "description": "Elimina un usuario de auth.users y de la tabla usuarios en cascada. Solo funciona si el token es de un Administrador."
+          }
+        }
+      ]
+    }
+  ]
+}
