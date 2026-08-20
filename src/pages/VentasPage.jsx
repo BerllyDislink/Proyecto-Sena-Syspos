@@ -185,7 +185,17 @@ function NuevaVentaModal({ productos, onSave, onClose }) {
     try {
       await onSave({ cliente, tel, email, items: lineas, total: subtotal })
     } catch (err) {
-      setErrors({ general: 'Error al guardar la venta: ' + (err.message || 'Intenta de nuevo') })
+      const msg = err.message || ''
+      // Detectar errores de sesión/token específicamente
+      if (
+        msg.includes('JWT') || msg.includes('token') ||
+        msg.includes('session') || msg.includes('auth') ||
+        msg.includes('401') || msg.includes('403')
+      ) {
+        setErrors({ general: 'Tu sesión expiró. Cierra el modal, cierra sesión y vuelve a entrar.' })
+      } else {
+        setErrors({ general: 'Error al guardar: ' + msg })
+      }
     } finally {
       setSaving(false)
     }

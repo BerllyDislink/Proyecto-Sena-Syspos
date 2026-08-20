@@ -34,7 +34,8 @@ function BarChart({ data }) {
         const isToday = i === data.length - 1
         const pct = Math.round((d.value / max) * 100)
         return (
-          <div key={i} className="flex flex-col items-center flex-1 gap-1 group relative">
+          <div key={i}
+          className="flex flex-col justify-end items-center flex-1 h-full gap-1 group relative">
             {/* Tooltip */}
             {d.value > 0 && (
               <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-primary-700 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">

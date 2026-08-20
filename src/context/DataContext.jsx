@@ -138,9 +138,21 @@ export function DataProvider({ children }) {
   const agregarVenta = async (data) => {
     const numero = await generarNumeroVenta()
 
-    // Obtener el UUID del usuario autenticado actual (el vendedor)
+    // Obtener el UUID del usuario autenticado
     const { data: { session } } = await supabase.auth.getSession()
-    const vendedor_id = session?.user?.id || null
+    const authUserId = session?.user?.id || null
+
+    // Verificar que ese UUID existe en la tabla usuarios (FK válida)
+    // Si no existe, enviar null para no violar la FK constraint
+    let vendedor_id = null
+    if (authUserId) {
+      const { data: perfilExiste } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('id', authUserId)
+        .maybeSingle()
+      vendedor_id = perfilExiste?.id || null
+    }
 
     const { data: v, error: e1 } = await supabase.from('ventas')
       .insert({
@@ -150,7 +162,7 @@ export function DataProvider({ children }) {
         email:       data.email || null,
         estado:      'Completada',
         total:       data.total,
-        vendedor_id,                    // ← relación con usuarios
+        vendedor_id,  // null si el usuario no está en la tabla usuarios
       })
       .select().single()
     if (e1) throw e1
@@ -246,22 +258,46 @@ export function DataProvider({ children }) {
 
     ignorarCambioSesion.current = true
     try {
+      // 1. Crear cuenta del nuevo usuario en Auth
       const { data: authData, error: e1 } = await supabase.auth.signUp({
-        email: data.email, password: data.password,
-        options: { data: { nombre: data.nombre, rol: data.rol } },
+        email:    data.email,
+        password: data.password,
+        options:  { data: { nombre: data.nombre, rol: data.rol } },
       })
       if (e1) throw e1
       if (!authData?.user) throw new Error('No se pudo crear la cuenta')
 
+      // 2. Insertar perfil en tabla usuarios
       const { error: e2 } = await supabase.from('usuarios').insert({
-        id: authData.user.id, nombre: data.nombre, email: data.email, rol: data.rol, estado: data.estado,
+        id:     authData.user.id,
+        nombre: data.nombre,
+        email:  data.email,
+        rol:    data.rol,
+        estado: data.estado,
       })
       if (e2) throw e2
 
-      await supabase.auth.refreshSession({ refresh_token: rt })
+      // 3. Restaurar sesión del admin con el refresh_token guardado
+      const { data: restored, error: e3 } = await supabase.auth.refreshSession({
+        refresh_token: rt,
+      })
+
+      if (e3 || !restored?.session?.access_token) {
+        // Si refreshSession falla, forzar logout para que el admin haga login de nuevo
+        // Es mejor un login limpio que una sesión rota que congela la app
+        Object.keys(localStorage)
+          .filter(k => k.startsWith('sb-'))
+          .forEach(k => localStorage.removeItem(k))
+        throw new Error(
+          'Usuario creado correctamente, pero la sesión del administrador expiró. ' +
+          'Por favor inicia sesión de nuevo.'
+        )
+      }
+
       await recargarDatos()
       return authData.user.id
     } finally {
+      // Siempre desactivar el flag, pase lo que pase
       ignorarCambioSesion.current = false
     }
   }

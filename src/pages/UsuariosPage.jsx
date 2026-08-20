@@ -5,11 +5,10 @@ import { useIsAdmin } from '../context/AuthContext'
 import { IconPlus, IconSearch, IconEdit, IconTrash, IconX, IconEye, IconEyeOff } from '../components/Icons'
 
 // ── Constantes ────────────────────────────────────────────────────────
-const ROLES = ['Administrador', 'Vendedor', 'Cajero', 'Supervisor']
+const ROLES = ['Administrador', 'Vendedor', 'Supervisor']
 const ROL_STYLE = {
   Administrador: 'text-primary-300 bg-primary-900/70',
   Vendedor:      'text-emerald-300 bg-emerald-900/60',
-  Cajero:        'text-sky-300 bg-sky-900/60',
   Supervisor:    'text-amber-300 bg-amber-900/60',
 }
 const ESTADO_STYLE = {
